@@ -23,24 +23,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Construit l'image dev (FrankenPHP + PHP 8.5.9, identique au local)
+      # Construit l'image dev (FrankenPHP + PHP 8.5.9, identique au local).
+      # Valide au passage que le Dockerfile build correctement.
       - name: Build image
         run: docker compose build php
 
-      # Démarre le service php ; l'entrypoint installe les dépendances Composer,
-      # --wait attend que le healthcheck soit vert.
-      - name: Start php service
-        run: docker compose up -d --wait php
+      # On court-circuite l'entrypoint (--entrypoint) pour exécuter les checks
+      # sans démarrer le serveur ni attendre la base de données : les commandes
+      # ci-dessous n'en ont pas besoin, et le job reste rapide et déterministe.
+      - name: Install dependencies
+        run: docker compose run --rm --no-deps -T --entrypoint composer php install --no-interaction --no-progress --prefer-dist
 
       - name: Validate composer.json
-        run: docker compose exec -T php composer validate --strict
+        run: docker compose run --rm --no-deps -T --entrypoint composer php validate --strict
 
       - name: Lint YAML config
-        run: docker compose exec -T php php bin/console lint:yaml config --parse-tags
+        run: docker compose run --rm --no-deps -T --entrypoint php php bin/console lint:yaml config --parse-tags
 
       - name: Lint DI container
-        run: docker compose exec -T php php bin/console lint:container
-
-      - name: Stop services
-        if: always()
-        run: docker compose down
+        run: docker compose run --rm --no-deps -T --entrypoint php php bin/console lint:container
