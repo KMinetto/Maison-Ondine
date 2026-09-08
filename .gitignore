@@ -1,0 +1,25 @@
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Éditeurs / IDE ---
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- Variables d'environnement (détaillées à l'issue #5) ---
+.env
+.env.local
+.env.*.local
+
+# --- Outils IA / skills (locaux au dev, non versionnés) ---
+.agents/
+.claude/skills/
+skills-lock.json
+
+# --- Script d'installation ponctuel ---
+install-gh.sh
+
+# Note : les dossiers backend/ (Symfony, #2) et frontend/ (Nuxt, #3)
+# apporteront leur propre .gitignore lors de leur initialisation.
