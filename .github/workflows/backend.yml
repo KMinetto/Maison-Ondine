@@ -1,0 +1,44 @@
+name: Backend CI
+
+# Ne se déclenche que lorsque le dossier backend/ (ou ce workflow) change.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  build:
+    name: Build & lint (Docker / FrankenPHP)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Construit l'image dev (FrankenPHP + PHP 8.5.9, identique au local).
+      # Valide au passage que le Dockerfile build correctement.
+      - name: Build image
+        run: docker compose build php
+
+      # On court-circuite l'entrypoint (--entrypoint) pour exécuter les checks
+      # sans démarrer le serveur ni attendre la base de données : les commandes
+      # ci-dessous n'en ont pas besoin, et le job reste rapide et déterministe.
+      - name: Install dependencies
+        run: docker compose run --rm --no-deps -T --entrypoint composer php install --no-interaction --no-progress --prefer-dist
+
+      - name: Validate composer.json
+        run: docker compose run --rm --no-deps -T --entrypoint composer php validate --strict
+
+      - name: Lint YAML config
+        run: docker compose run --rm --no-deps -T --entrypoint php php bin/console lint:yaml config --parse-tags
+
+      - name: Lint DI container
+        run: docker compose run --rm --no-deps -T --entrypoint php php bin/console lint:container
