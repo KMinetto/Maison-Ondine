@@ -8,10 +8,12 @@ Thumbs.db
 *.swp
 *~
 
-# --- Variables d'environnement (détaillées à l'issue #5) ---
-.env
-.env.local
-.env.*.local
+# --- Variables d'environnement à la racine uniquement (détaillées à l'issue #5) ---
+# Ancré à la racine : backend/ et frontend/ gèrent leurs propres .env
+# (Symfony versionne son backend/.env, secrets dans .env.local ignoré localement).
+/.env
+/.env.local
+/.env.*.local
 
 # --- Outils IA / skills (locaux au dev, non versionnés) ---
 .agents/
